@@ -11,6 +11,7 @@ Hieronder lees je wat je op je laptop moet hebben geïnstalleerd om de daarop vo
   
 * GIT  
   Je moet de terminal opdracht GIT op je laptop hebben geïnstalleerd.  
+  Download: [GIT Commandline tool](https://git-scm.com/downloads)
   
 ### Installeren 1e keer
 Je haalt de repository op je eigen laptop binnen door de volgende opdracht in een terminal venster in te tikken. Ga voordat je de opdracht intikt en uitvoert ga dan wel in de map staan waar je de code van deze repository wil installeren. En maak daar dan een map aan met b.v. de naam **04-bke**. Ga daarna in deze map staan. 
@@ -27,3 +28,9 @@ Ga in de map (b.v. 04-bke) staan en tik de volgende terminal opdracht in:
    git pull
 ```
 
+## Tools
+  
+### Git Desktop App
+In plaats van repo's beheren met de terminal opdracht (GIT Cli) kun je ook gebruik maken van een desktop app. De link hieronder laat je een standaard versie downloaden.  
+
+Download: [Git Desktop App](https://desktop.github.com/download/)
