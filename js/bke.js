@@ -193,13 +193,134 @@ function buttonClick(event_element) {
  * geklikt is. In feite is deze functie de kern van ons
  * spel.
  * 
- * @param {cell} event_element 
+ * @param {cell} event_element property (destructering van de property target)
  * 
  * @returns void              (geen return waarde)
  */
-function cellClick(event_element)
+function cellClick({target: cell})
 {
+   if (cell.src.includes(_IMAGES[_EMPTY_CELL])) {
+      // Cell is leeg, het heeft nu pas zin om de onderstaande acties uit te voeren
+      cell.src = _IMAGES[current_player];             // Speler symbool laten zien
+      cell.removeEventListener('click', cellClick);   // Cel onklikbaar maken
 
+      current_player = (current_player == _PLAYER1 ? _PLAYER2 : _PLAYER1); // Wisselen van beurt
+      
+      // Nu gaan we tonen op het scherm welke speler de ronde mag beginnen
+      element_turn_number.innerHTML = current_player;     // Het nummer tonen
+      // Met een ternary operator (korte versie van een simpele IF-statement)
+      // tonen we de afbeelding in de UI van de speler die mag beginnen
+      //                       (      Voorwaarde           ? Voorwaarde is waar : Voorwaarde is niet waar)
+      element_turn_image.src = (current_player == _PLAYER1 ? _IMAGES[_PLAYER1] : _IMAGES[_PLAYER2]);
+
+      // Winnen controle
+      if (  // We controleren eerst of speler 1 heeft gewonnen
+         (  // Rij 1
+            element_cells[_CELL1].src.includes(_IMAGES[_PLAYER1]) &&
+            element_cells[_CELL2].src.includes(_IMAGES[_PLAYER1]) &&
+            element_cells[_CELL3].src.includes(_IMAGES[_PLAYER1])
+         ) ||
+         (  // Rij 2
+            element_cells[_CELL4].src.includes(_IMAGES[_PLAYER1]) &&
+            element_cells[_CELL5].src.includes(_IMAGES[_PLAYER1]) &&
+            element_cells[_CELL6].src.includes(_IMAGES[_PLAYER1])
+         ) ||
+         (  // Rij 3
+            element_cells[_CELL7].src.includes(_IMAGES[_PLAYER1]) &&
+            element_cells[_CELL8].src.includes(_IMAGES[_PLAYER1]) &&
+            element_cells[_CELL9].src.includes(_IMAGES[_PLAYER1])
+         ) ||
+         (  // Kolom 1
+            element_cells[_CELL1].src.includes(_IMAGES[_PLAYER1]) &&
+            element_cells[_CELL4].src.includes(_IMAGES[_PLAYER1]) &&
+            element_cells[_CELL7].src.includes(_IMAGES[_PLAYER1])
+         ) ||
+         (  // Kolom 2
+            element_cells[_CELL2].src.includes(_IMAGES[_PLAYER1]) &&
+            element_cells[_CELL5].src.includes(_IMAGES[_PLAYER1]) &&
+            element_cells[_CELL8].src.includes(_IMAGES[_PLAYER1])
+         ) ||
+         (  // Kolom 3
+            element_cells[_CELL3].src.includes(_IMAGES[_PLAYER1]) &&
+            element_cells[_CELL6].src.includes(_IMAGES[_PLAYER1]) &&
+            element_cells[_CELL9].src.includes(_IMAGES[_PLAYER1])
+         ) ||
+         (  // Diagonaal 1
+            element_cells[_CELL1].src.includes(_IMAGES[_PLAYER1]) &&
+            element_cells[_CELL5].src.includes(_IMAGES[_PLAYER1]) &&
+            element_cells[_CELL9].src.includes(_IMAGES[_PLAYER1])
+         ) ||
+         (  // Diagonaal 2
+            element_cells[_CELL3].src.includes(_IMAGES[_PLAYER1]) &&
+            element_cells[_CELL5].src.includes(_IMAGES[_PLAYER1]) &&
+            element_cells[_CELL7].src.includes(_IMAGES[_PLAYER1])
+         )
+      ) {
+         // Speler 1 heeft gewonnen
+         console.log('Speler 1 gewonnen');
+         score_player1 += 2;
+         element_score_player1.innerText = score_player1;
+
+         element_game_button.click();  // Simuleren een click op de game button, waardoor we dezelfde code in de buttonClick functie kunnen gebruiken
+      } else if (       // Als speler 1 niet heeft gewonnen controleren we of speler 2 dan heeft gewonnen
+         (  // Rij 1
+            element_cells[_CELL1].src.includes(_IMAGES[_PLAYER2]) &&
+            element_cells[_CELL2].src.includes(_IMAGES[_PLAYER2]) &&
+            element_cells[_CELL3].src.includes(_IMAGES[_PLAYER2])
+         ) ||
+         (  // Rij 2
+            element_cells[_CELL4].src.includes(_IMAGES[_PLAYER2]) &&
+            element_cells[_CELL5].src.includes(_IMAGES[_PLAYER2]) &&
+            element_cells[_CELL6].src.includes(_IMAGES[_PLAYER2])
+         ) ||
+         (  // Rij 3
+            element_cells[_CELL7].src.includes(_IMAGES[_PLAYER2]) &&
+            element_cells[_CELL8].src.includes(_IMAGES[_PLAYER2]) &&
+            element_cells[_CELL9].src.includes(_IMAGES[_PLAYER2])
+         ) ||
+         (  // Kolom 1
+            element_cells[_CELL1].src.includes(_IMAGES[_PLAYER2]) &&
+            element_cells[_CELL4].src.includes(_IMAGES[_PLAYER2]) &&
+            element_cells[_CELL7].src.includes(_IMAGES[_PLAYER2])
+         ) ||
+         (  // Kolom 2
+            element_cells[_CELL2].src.includes(_IMAGES[_PLAYER2]) &&
+            element_cells[_CELL5].src.includes(_IMAGES[_PLAYER2]) &&
+            element_cells[_CELL8].src.includes(_IMAGES[_PLAYER2])
+         ) ||
+         (  // Kolom 3
+            element_cells[_CELL3].src.includes(_IMAGES[_PLAYER2]) &&
+            element_cells[_CELL6].src.includes(_IMAGES[_PLAYER2]) &&
+            element_cells[_CELL9].src.includes(_IMAGES[_PLAYER2])
+         ) ||
+         (  // Diagonaal 1
+            element_cells[_CELL1].src.includes(_IMAGES[_PLAYER2]) &&
+            element_cells[_CELL5].src.includes(_IMAGES[_PLAYER2]) &&
+            element_cells[_CELL9].src.includes(_IMAGES[_PLAYER2])
+         ) ||
+         (  // Diagonaal 2
+            element_cells[_CELL3].src.includes(_IMAGES[_PLAYER2]) &&
+            element_cells[_CELL5].src.includes(_IMAGES[_PLAYER2]) &&
+            element_cells[_CELL7].src.includes(_IMAGES[_PLAYER2])
+         )
+      ) {
+         // Speler 2 heeft gewonnen, dus kennen we punten toe en resetten we de ronde
+         console.log('Speler 2 heeft gewonnen');
+         score_player2 += 2;
+         element_score_player2.innerText = score_player2;
+
+         element_game_button.click();  // Simuleren een click op de button, waardoor we dezelfde code gebruiken in de buttonClick functie
+      } else if(element_cells.values().every(cell => !cell.src.includes(_IMAGES[_EMPTY_CELL]))) {       // Beide spelers niet gewonnen, dus controle op gelijkspel
+         // Geen enkele lege cell gevonden, dus gelijkspel. Dan beide spelers 1 punt.
+         console.log('Gelijkspel');
+         score_player1++;
+         score_player2++;
+         element_score_player1.innerText = score_player1;
+         element_score_player2.innerText = score_player2;
+
+         element_game_button.click();
+      }
+   }
 }
 
 /**
