@@ -73,11 +73,11 @@ window.onload = function() {
    * Voor b.v. scores geldt dat we de scores resetten naar 0,
    * we beginnen dus opnieuw te tellen.
    */
-   timer_id = null;            // NULL, want er is nog geen lopende timer
-   elapsed_time_in_seconds = 0;   // 0, want er is nog geen ronde gestart
-   score_player1 = 0;          // 0, reset van de score
-   score_player2 = 0;          // 0, reset van de score
-   current_round = 0;          // 0, want er is nog geen ronde gestart
+   timer_id = null;                 // NULL, want er is nog geen lopende timer
+   elapsed_time_in_seconds = 0;     // 0, want er is nog geen ronde gestart
+   score_player1 = 0;               // 0, reset van de score
+   score_player2 = 0;               // 0, reset van de score
+   current_round = 0;               // 0, want er is nog geen ronde gestart
 
    // We gaan nu vertellen dat een click event op de button moet worden
    // opgevangen en de afhandeling van een click door de functie
@@ -92,91 +92,22 @@ window.onload = function() {
  * game button, waarmee we een ronde kunnen starten of een
  * ronde kunnen resetten.
  * 
- * @param {button} event_element 
+ * @param {Object} game_button       Het element waarop geklikt is, na destructering de button dus
  * 
  * @returns void
  */
-function buttonClick(event_element) {
+function buttonClick({ target: game_button }) {
    /* 
       We controleren hier of de tekst op de button gelijk is aan: 'Start ronde'
       Want als dat zo is dan moet er namelijk iets anders gebeuren dan wanneer
       de tekst 'Reset ronde' op de button staat.
    */
-   if(event_element.target.innerHTML == 'Start ronde') {
-      /**
-       * JA!
-       * Dus ondernemen we nu de stappen om een ronde te starten
-       */
-
-      current_round++;                                      // Ronde nummer met 1 verhogen           
-      element_rounds_played.innerHTML = current_round;      // Nu plaatsen we het nummer in het element
-                                                            // om het te tonen aan de spelers
-
-      // Willekeurig bepalen welke speler mag beginnen, dit levert een 1(speler 1) of een 2(speler 2) op
-      current_player = Math.floor(Math.random() * 2 + 1);  
-   
-      // Nu gaan we tonen op het scherm welke speler de ronde mag beginnen
-      element_turn_number.innerHTML = current_player;     // Het nummer tonen
-      // Met een ternary operator (korte versie van een simpele IF-statement)
-      // tonen we de afbeelding in de UI van de speler die mag beginnen
-      //                       (      Voorwaarde           ? Voorwaarde is waar : Voorwaarde is niet waar)
-      element_turn_image.src = (current_player == _PLAYER1 ? _IMAGES[_PLAYER1] : _IMAGES[_PLAYER2]);
-      
-      /*
-         In de onderstaande programma lus lopen we nu langs alle cellen in het speelbord
-         en koppelen hier een click eventhandler aan.
-      */
-      element_cells.forEach(cell => {
-         cell.addEventListener('click', cellClick);
-      });
-
-      event_element.target.innerHTML = 'Reset ronde';     // Tekst op de knop veranderen
-      element_round_time.innerHTML = '00:00';             // We resetten en tonen een ronde tijd 00:00
-      
-      /*
-      * We starten nu de ronde timer
-      * Als echter de variabele timer_id niet gelijk is aan NULL dan loopt er nog 
-      * een timer, deze moeten we eerst stoppen.
-      */
-      if(timer_id != null) {           // Als de variabele timer_id niet NULL is is er al een timer
-         clearInterval(timer_id);      // Stop de timer
-         timer_id = null;              // Reset de variabele op NULL
-         elapsed_time_in_seconds = 0;  // Reset de variabele op 0 seconden
-      }
-
-      // We starten nu een nieuwe timer
-      timer_id = setInterval( roundsTimer, 1000 );    // Om de seconde mag de functie roundsTimer uitgevoerd worden
+   if(game_button.innerText == 'Start ronde') {
+      // JA! Dus ondernemen we nu de stappen om een ronde te starten
+      startRound();
    } else {
-      /* Nee!
-       * We programmeren de game zelf en weten daarom dat
-       * als de tekst 'Start ronde' niet op de knop staat als tekst
-       * er dan wel 'Reset ronde' op moet staan.
-       * 
-       * Dus kunnen we het spel nu gaan resetten door de volgende
-       *  stappen uit te voeren:
-       *      - Timer stoppen
-       *      - Laatste timer info tonen op het scherm
-       *      - Speelveld leeg maken (overal weer empty.jpg in plaatsen) en
-       *        Deactiveren van de click event handlers op de cellen
-       *      - Start spel op de button plaatsen
-      */
-      
-      /*  
-       *  We gaan nu eerst alle cellen in het speelveld onklikbaar maken
-      */
-      element_cells.forEach(cell => {
-         cell.removeEventListener('click', cellClick);
-         cell.src = _IMAGES[_EMPTY_CELL];
-      });
-      
-      event_element.target.innerHTML = 'Start ronde';     // Tekst op de knop veranderen
-
-      // Nu stoppen we de ronde timer
-      if(timer_id != null) {           // Als de variabele timer_id niet NULL is, is er al een timer
-         clearInterval(timer_id);      // Dus moeten we lopende timer stoppen
-         timer_id = null;              // En we zetten de door ons bepaalde standaard waarde (null) weer in de globale variabel
-         elapsed_time_in_seconds = 0;  // En we zetten de teller van het aantal verlopen seconden weer op 0
-      }
+      // NEE! Dan staat er naar alle waarschijnlijkheid 'Reset ronde' op de knop
+      stopRound();
    }
 }
 
@@ -193,132 +124,53 @@ function buttonClick(event_element) {
  * geklikt is. In feite is deze functie de kern van ons
  * spel.
  * 
- * @param {cell} event_element property (destructering van de property target)
+ * @param {Object} cell       Element (destructering van de property target), de naam verteld welk type element
  * 
  * @returns void              (geen return waarde)
  */
 function cellClick({target: cell})
 {
-   if (cell.src.includes(_IMAGES[_EMPTY_CELL])) {
+   if (isCellEmpty(cell)) {
       // Cell is leeg, het heeft nu pas zin om de onderstaande acties uit te voeren
-      cell.src = _IMAGES[current_player];             // Speler symbool laten zien
-      cell.removeEventListener('click', cellClick);   // Cel onklikbaar maken
 
-      current_player = (current_player == _PLAYER1 ? _PLAYER2 : _PLAYER1); // Wisselen van beurt
+      showPlayerSymbolInCell(cell);       // Toon spelersymbool in de cel
+      removeCellEventListener(cell);      // Verwijder de klik eventhandler van deze cel
+
+      switchPlayerTurn();                 // Wissel van beurt en toon dit in de UI
       
-      // Nu gaan we tonen op het scherm welke speler de ronde mag beginnen
-      element_turn_number.innerHTML = current_player;     // Het nummer tonen
-      // Met een ternary operator (korte versie van een simpele IF-statement)
-      // tonen we de afbeelding in de UI van de speler die mag beginnen
-      //                       (      Voorwaarde           ? Voorwaarde is waar : Voorwaarde is niet waar)
-      element_turn_image.src = (current_player == _PLAYER1 ? _IMAGES[_PLAYER1] : _IMAGES[_PLAYER2]);
+      /*
+       * We controleren nu of een van de twee spelers heeft gewonnen.
+       * We controleren eerst speler 1, daarna speler 2.
+       * Heeft niemand gewonnen dan kan er nog sprake zijn van een gelijkspel
+       * We controleren daarom aan het eind nog op een gelijkspel.
+       * 
+       * We controleren dit, omdat als er sprake is van deze situaties
+       * de ronde kan worden gestopt namelijk.
+       * In alle andere gevallen doet deze functies niks en kan het spelen van
+       * de ronde gewoon doorgaan.
+       */
+      if (didPlayerWin(_PLAYER1)) {                         // Controle of _PLAYER1 heeft gewonnen
+         // JA: Speler 1 heeft gewonnen
+         score_player1 += 2;                                // Winnaar krijgt 2 punten
+         element_score_player1.innerText = score_player1;   // We tonen de nieuwe score
 
-      // Winnen controle
-      if (  // We controleren eerst of speler 1 heeft gewonnen
-         (  // Rij 1
-            element_cells[_CELL1].src.includes(_IMAGES[_PLAYER1]) &&
-            element_cells[_CELL2].src.includes(_IMAGES[_PLAYER1]) &&
-            element_cells[_CELL3].src.includes(_IMAGES[_PLAYER1])
-         ) ||
-         (  // Rij 2
-            element_cells[_CELL4].src.includes(_IMAGES[_PLAYER1]) &&
-            element_cells[_CELL5].src.includes(_IMAGES[_PLAYER1]) &&
-            element_cells[_CELL6].src.includes(_IMAGES[_PLAYER1])
-         ) ||
-         (  // Rij 3
-            element_cells[_CELL7].src.includes(_IMAGES[_PLAYER1]) &&
-            element_cells[_CELL8].src.includes(_IMAGES[_PLAYER1]) &&
-            element_cells[_CELL9].src.includes(_IMAGES[_PLAYER1])
-         ) ||
-         (  // Kolom 1
-            element_cells[_CELL1].src.includes(_IMAGES[_PLAYER1]) &&
-            element_cells[_CELL4].src.includes(_IMAGES[_PLAYER1]) &&
-            element_cells[_CELL7].src.includes(_IMAGES[_PLAYER1])
-         ) ||
-         (  // Kolom 2
-            element_cells[_CELL2].src.includes(_IMAGES[_PLAYER1]) &&
-            element_cells[_CELL5].src.includes(_IMAGES[_PLAYER1]) &&
-            element_cells[_CELL8].src.includes(_IMAGES[_PLAYER1])
-         ) ||
-         (  // Kolom 3
-            element_cells[_CELL3].src.includes(_IMAGES[_PLAYER1]) &&
-            element_cells[_CELL6].src.includes(_IMAGES[_PLAYER1]) &&
-            element_cells[_CELL9].src.includes(_IMAGES[_PLAYER1])
-         ) ||
-         (  // Diagonaal 1
-            element_cells[_CELL1].src.includes(_IMAGES[_PLAYER1]) &&
-            element_cells[_CELL5].src.includes(_IMAGES[_PLAYER1]) &&
-            element_cells[_CELL9].src.includes(_IMAGES[_PLAYER1])
-         ) ||
-         (  // Diagonaal 2
-            element_cells[_CELL3].src.includes(_IMAGES[_PLAYER1]) &&
-            element_cells[_CELL5].src.includes(_IMAGES[_PLAYER1]) &&
-            element_cells[_CELL7].src.includes(_IMAGES[_PLAYER1])
-         )
-      ) {
-         // Speler 1 heeft gewonnen
-         console.log('Speler 1 gewonnen');
-         score_player1 += 2;
-         element_score_player1.innerText = score_player1;
+         stopRound();                                       // We stoppen de ronde
 
-         element_game_button.click();  // Simuleren een click op de game button, waardoor we dezelfde code in de buttonClick functie kunnen gebruiken
-      } else if (       // Als speler 1 niet heeft gewonnen controleren we of speler 2 dan heeft gewonnen
-         (  // Rij 1
-            element_cells[_CELL1].src.includes(_IMAGES[_PLAYER2]) &&
-            element_cells[_CELL2].src.includes(_IMAGES[_PLAYER2]) &&
-            element_cells[_CELL3].src.includes(_IMAGES[_PLAYER2])
-         ) ||
-         (  // Rij 2
-            element_cells[_CELL4].src.includes(_IMAGES[_PLAYER2]) &&
-            element_cells[_CELL5].src.includes(_IMAGES[_PLAYER2]) &&
-            element_cells[_CELL6].src.includes(_IMAGES[_PLAYER2])
-         ) ||
-         (  // Rij 3
-            element_cells[_CELL7].src.includes(_IMAGES[_PLAYER2]) &&
-            element_cells[_CELL8].src.includes(_IMAGES[_PLAYER2]) &&
-            element_cells[_CELL9].src.includes(_IMAGES[_PLAYER2])
-         ) ||
-         (  // Kolom 1
-            element_cells[_CELL1].src.includes(_IMAGES[_PLAYER2]) &&
-            element_cells[_CELL4].src.includes(_IMAGES[_PLAYER2]) &&
-            element_cells[_CELL7].src.includes(_IMAGES[_PLAYER2])
-         ) ||
-         (  // Kolom 2
-            element_cells[_CELL2].src.includes(_IMAGES[_PLAYER2]) &&
-            element_cells[_CELL5].src.includes(_IMAGES[_PLAYER2]) &&
-            element_cells[_CELL8].src.includes(_IMAGES[_PLAYER2])
-         ) ||
-         (  // Kolom 3
-            element_cells[_CELL3].src.includes(_IMAGES[_PLAYER2]) &&
-            element_cells[_CELL6].src.includes(_IMAGES[_PLAYER2]) &&
-            element_cells[_CELL9].src.includes(_IMAGES[_PLAYER2])
-         ) ||
-         (  // Diagonaal 1
-            element_cells[_CELL1].src.includes(_IMAGES[_PLAYER2]) &&
-            element_cells[_CELL5].src.includes(_IMAGES[_PLAYER2]) &&
-            element_cells[_CELL9].src.includes(_IMAGES[_PLAYER2])
-         ) ||
-         (  // Diagonaal 2
-            element_cells[_CELL3].src.includes(_IMAGES[_PLAYER2]) &&
-            element_cells[_CELL5].src.includes(_IMAGES[_PLAYER2]) &&
-            element_cells[_CELL7].src.includes(_IMAGES[_PLAYER2])
-         )
-      ) {
-         // Speler 2 heeft gewonnen, dus kennen we punten toe en resetten we de ronde
-         console.log('Speler 2 heeft gewonnen');
-         score_player2 += 2;
-         element_score_player2.innerText = score_player2;
+      } else if (didPlayerWin(_PLAYER2)) {                  // Controle of _PLAYER2 heeft gewonnen
+         // JA: Speler 2 heeft gewonnen, speler 1 dus niet
+         score_player2 += 2;                                // Speler krijgt 2 punten
+         element_score_player2.innerText = score_player2;   // We tonen de nieuwe score
 
-         element_game_button.click();  // Simuleren een click op de button, waardoor we dezelfde code gebruiken in de buttonClick functie
-      } else if(element_cells.values().every(cell => !cell.src.includes(_IMAGES[_EMPTY_CELL]))) {       // Beide spelers niet gewonnen, dus controle op gelijkspel
-         // Geen enkele lege cell gevonden, dus gelijkspel. Dan beide spelers 1 punt.
-         console.log('Gelijkspel');
-         score_player1++;
-         score_player2++;
-         element_score_player1.innerText = score_player1;
-         element_score_player2.innerText = score_player2;
+         stopRound();                                       // We stoppen de ronde
 
-         element_game_button.click();
+      } else if (isDrawSituation()) {                       // Controle op GELIJKSPEL
+         // JA: Geen enkele lege cell gevonden, dus gelijkspel. Dus beide spelers hebben niet gewonnen.
+         score_player1++;                                   // Beide spelers krijgen 1 punt
+         score_player2++;                                   // Beide spelers krijgen 1 punt
+         element_score_player1.innerText = score_player1;   // Toon de nieuwe score van speler1
+         element_score_player2.innerText = score_player2;   // Toon de nieuwe score van speler2
+
+         stopRound();                                       // Stop de ronde
       }
    }
 }
@@ -373,9 +225,275 @@ function roundsTimer()
     * De format van de string is: mm:ss.
     */ 
    element_round_time.innerText =
-      (elapsed_time_in_minutes < 10 ? '0' : '') +     // Een voorloop nul plaatsen indien nodig bij minuten
-      elapsed_time_in_minutes.toString() +            // De werkelijk verlopen minuten aan de string plakken
-      ':' +                                           // Een dubbele punt als scheiding tussen minuten en seconden aan de string vastplakken  
-      (elapsed_time_in_seconds % 60 < 10 ? '0' : '') + // Een voorloop nul aan de string vastplakken indien nodig
-      (elapsed_time_in_seconds % 60).toString();      // De werkelijk resterende verlopen seconden aan de string vastplakken
+      (elapsed_time_in_minutes < 10 ? '0' : '') +        // Een voorloop nul plaatsen indien nodig bij minuten
+      elapsed_time_in_minutes.toString() +               // De werkelijk verlopen minuten aan de string plakken
+      ':' +                                              // Een dubbele punt als scheiding tussen minuten en seconden aan de string vastplakken  
+      (elapsed_time_in_seconds % 60 < 10 ? '0' : '') +   // Een voorloop nul aan de string vastplakken indien nodig
+      (elapsed_time_in_seconds % 60).toString();         // De werkelijk resterende verlopen seconden aan de string vastplakken
+}
+
+/**
+ * addAllCellEventListeners
+ * ------------------------
+ * Voegt een eventhandler toe aan iedere cell in het speelveld
+ */
+function addAllCellEventListeners()
+{
+   element_cells.forEach(cell => {
+      cell.addEventListener('click', cellClick);
+   });
+}
+
+/**
+ * removeAllCellEventListeners
+ * ---------------------------
+ * Verwijdert alle eventhandlers van alle cellen in het speelveld
+ */
+function removeAllCellEventListeners()
+{
+   element_cells.forEach(cell => {
+      cell.removeEventListener('click', cellClick);
+   });
+}
+
+/**
+ * removeCellEventListener
+ * -----------------------
+ * Verwijder de eventhandler van een specifieke cell (de cell die is meegegeven) in het speelveld.
+ * 
+ * @param {Object} cell                Object van een IMG-tag
+ */
+function removeCellEventListener(cell)
+{
+   // Alleen uitvoeren als de gegeven CELL een object is en de tagname ook daadwerkelijk IMG is
+   if (typeof (cell) == "object" && cell.tagName == 'IMG') {
+      cell.removeEventListener('click', cellClick);
+   }
+}
+
+/**
+ * emptyAllCells
+ * -------------
+ * Maak alle cellen weer leeg (plaats dus empty.jpg in elke cell) in het speelveld
+ */
+function emptyAllCells()
+{
+   element_cells.forEach(cell => cell.src = _IMAGES[_EMPTY_CELL]);
+}
+
+/**
+ * startTimer
+ * ----------
+ * Start een ronde timer, maar we laten eerst een lopende timer stoppen
+ * met behulp van de functie stopTimer.
+ */
+function startTimer()
+{
+   /*
+    * We starten nu de ronde timer
+    * Als echter de variabele timer_id niet gelijk is aan NULL dan loopt er nog 
+    * een timer, deze moeten we eerst stoppen.
+   */
+   stopTimer();
+
+   // We starten nu een nieuwe timer
+   timer_id = setInterval( roundsTimer, 1000 );    // Om de seconde mag de functie roundsTimer uitgevoerd worden
+}
+
+/**
+ * stopTimer
+ * ---------
+ * Stop een lopende timer (als deze loopt in elk geval).
+ */
+function stopTimer()
+{
+   if(timer_id != null) {           // Als de variabele timer_id niet NULL is is er al een timer
+      clearInterval(timer_id);      // Stop de timer
+      timer_id = null;              // Reset de variabele op NULL
+      elapsed_time_in_seconds = 0;  // Reset de variabele op 0 seconden
+   }
+}
+
+/**
+ * increaseRound
+ * -------------
+ * Verhoog het ronde nummer en toont het nieuwe nummer
+ */
+function increaseRound()
+{
+   current_round++;                                      // Ronde nummer met 1 verhogen           
+   element_rounds_played.innerHTML = current_round;      // Nu plaatsen we het nummer in het element
+                                                         // om het te tonen aan de spelers
+}
+
+/**
+ * determineStartingPlayer
+ * -----------------------
+ * Bepaald willekeurig welke speler mag beginnen en toont dit in de UI
+ */
+function determineStartingPlayer()
+{
+   // Willekeurig bepalen welke speler mag beginnen, dit levert een 1(speler 1) of een 2(speler 2) op
+   current_player = Math.floor(Math.random() * 2 + 1);  
+
+   showPlayerTurn();
+}
+
+/**
+ * showPlayerSymbolInCell
+ * ----------------------
+ * Toon het symbool van de huidige speler in de gegeven cell.
+ * 
+ * @param {Object} cell 
+ */
+function showPlayerSymbolInCell(cell)
+{
+   cell.src = _IMAGES[current_player];             // Speler symbool laten zien
+}
+
+/**
+ * showPlayerTurn
+ * --------------
+ * Toon het nummer en het symbool van de speler die aan de beurt is.
+ */
+function showPlayerTurn()
+{
+   // Nu gaan we tonen op het scherm welke speler de ronde mag beginnen
+   element_turn_number.innerHTML = current_player;     // Het nummer tonen
+
+   // Toon nu het symbool van de speler
+   element_turn_image.src = _IMAGES[current_player];
+}
+
+/**
+ * switchPlayerTurn
+ * ----------------
+ * Geef de beurt aan de volgende speler.
+ */
+function switchPlayerTurn()
+{
+   current_player = (current_player == _PLAYER1 ? _PLAYER2 : _PLAYER1); // Wisselen van beurt
+
+   showPlayerTurn();
+}
+
+/**
+ * startRound
+ * ----------
+ * Start een nieuwe ronde
+ */
+function startRound()
+{
+   increaseRound();
+
+   determineStartingPlayer();
+
+   addAllCellEventListeners();
+
+   element_game_button.innerHTML = 'Reset ronde';     // Tekst op de knop veranderen
+
+   // We resetten en tonen een ronde tijd 00:00
+   element_round_time.innerHTML = '00:00';
+   startTimer();
+}
+
+/**
+ * stopRound
+ * ---------
+ * Stop de huidige ronde
+ */
+function stopRound()
+{
+   removeAllCellEventListeners();
+   emptyAllCells();
+   
+   element_game_button.innerHTML = 'Start ronde';     // Tekst op de knop veranderen
+
+   // Nu stoppen we de ronde timer
+   stopTimer();
+}
+
+/**
+ * didPlayerWinOn
+ * --------------
+ * Controleert of de aangegeven speler heeft gewonnen in de combinatie van 3 meegegeven cellen
+ * Dit kan een rij, kolom of diagonaal zijn.
+ * 
+ * @param {Object} cell1      Eerste cell
+ * @param {Object} cell2      Tweede cell
+ * @param {Object} cell3      Derde cell
+ * @param {Integer} player    Speler nummer
+ * 
+ * @returns {Boolean}         // TRUE: Als alle symbool afbeeldingen in de 3 meegegeven cellen van de speler zijn
+ *                            // FALSE: Niet alle symbool afbeeldingen in de 3 meegegeven celle zijn van de speler
+ */
+function didPlayerWinOn(cell1, cell2, cell3, player)
+{
+   return (
+      element_cells[cell1].src.includes(_IMAGES[player]) &&    // Eerste cel van Rij/Kolom/Diagonaal
+      element_cells[cell2].src.includes(_IMAGES[player]) &&    // Tweede cel van Rij/Kolom/Diagonaal
+      element_cells[cell3].src.includes(_IMAGES[player])       // Derde cel van Rij/Kolom/Diagonaal
+   );
+}
+
+/**
+ * didPlayerWin
+ * ------------
+ * Controleert of een gegeven speler heeft gewonnen in alle scenario's (Rij of Kolom of Diagonaal).
+ * Geeft TRUE als de gegeven speler heeft gewonnen, anders FALSE
+ * 
+ * @param {Integer} player    Speler nummer
+ * 
+ * @returns {Boolean}         TRUE: Speler heeft gewonnen, FALSE: Speler heeft niet gewonnen
+ */
+function didPlayerWin(player)
+{
+   return (
+      didPlayerWinOn(_CELL1, _CELL2, _CELL3, player) ||        // Rij 1
+      didPlayerWinOn(_CELL4, _CELL5, _CELL6, player) ||        // Rij 2
+      didPlayerWinOn(_CELL7, _CELL8, _CELL9, player) ||        // Rij 3
+
+      didPlayerWinOn(_CELL1, _CELL4, _CELL7, player) ||        // Kolom 1
+      didPlayerWinOn(_CELL2, _CELL5, _CELL8, player) ||        // Kolom 2
+      didPlayerWinOn(_CELL3, _CELL6, _CELL9, player) ||        // Kolom 3
+
+      didPlayerWinOn(_CELL1, _CELL5, _CELL9, player) ||        // Diagonaal 1
+      didPlayerWinOn(_CELL3, _CELL5, _CELL7, player)           // Diagonaal 2
+   );
+}
+
+/**
+ * isCellEmpty
+ * -----------
+ * Controleert of een cel leeg is (oftewel de image empty.jpg bevat).
+ * 
+ * @param {Object} cell 
+ * 
+ * @returns {Boolean}      TRUE: Cel is leeg, FALSE: Cel is NIET leeg
+ */
+function isCellEmpty(cell)
+{
+   return (
+      cell.src.includes(_IMAGES[_EMPTY_CELL])
+   );
+}
+
+/**
+ * isDraw
+ * ---------------
+ * Toch gekozen voor deze naam i.p.v. checkDraw, omdat deze naam meer een vraag suggereert waarop 
+ * met JA (TRUE) of NEE (FALSE) kan worden geantwoord.
+ * Controleert of er nog op z'n minst 1 lege cell in speelveld is. Zo ja, dan is er geen
+ * sprake van een DRAW (Gelijkspel).
+ * 
+ * @returns {Boolean}      TRUE: Gelijkspel, geen lege cellen meer, FALSE: Er is nog een lege cel
+ */
+function isDraw()
+{
+   for (let cell of element_cells) {                  // Lus om langs alle cellen te lopen
+      if (cell.src.includes(_IMAGES[_EMPTY_CELL]))
+         return false;                                // We zijn een lege cel tegengekomen, dus nog geen gelijkspel
+   }
+
+   return true;                                       // Als we hier komen dan hebben we geen lege cel gevonden, dus een gelijkspel
 }
